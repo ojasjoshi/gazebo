@@ -557,6 +557,7 @@ namespace gazebo
     template<typename T>
     ConnectionPtr EventT<T>::Connect(const std::function<T> &_subscriber)
     {
+      std::lock_guard<std::mutex> lock(this->mutex);
       int index = 0;
       if (!this->connections.empty())
       {
@@ -572,6 +573,8 @@ namespace gazebo
     template<typename T>
     unsigned int EventT<T>::ConnectionCount() const
     {
+      // We don't need a mutex lock here as all the methods 
+      // accessing this->connections are thread-safe.
       return this->connections.size();
     }
 
@@ -581,6 +584,7 @@ namespace gazebo
     void EventT<T>::Disconnect(int _id)
     {
       // Find the connection
+      std::lock_guard<std::mutex> lock(this->mutex);
       auto const &it = this->connections.find(_id);
 
       if (it != this->connections.end())
